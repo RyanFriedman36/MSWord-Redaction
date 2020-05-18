@@ -21,6 +21,7 @@ from tkinter import filedialog
 from string import punctuation
 import os
 from os import remove
+import copy
 
 
 def binary_search(source, target):
@@ -119,21 +120,25 @@ def processFiles(file_path_1, file_path_2):
     doc = Document(file_path_1)
 
     new_doc = Document()
+    temp_doc = Document()
 
-    for para in doc.paragraphs:
-        new_para = processPara(para, redact_info)
-        # new_doc.add_paragraph(new_para.text)
+    for i in range(len(doc.paragraphs)):
+        processPara(doc.paragraphs[i], redact_info, new_doc, temp_doc)
 
-    # doc.save(getDirFromFile(file_path_1) + "redacted version.docx")
+    new_doc.save(getDirFromFile(file_path_1) + "redacted version.docx")
 
 
-def processPara(para, redact_info):
+def processPara(para, redact_info, new_doc, temp_doc):
     """ Gets indices for words that are to be redacts them then returns a
         a paragraph with those words redacted  """
 
+    # gets indices within para.text of sensitive info
     redact_indices = getRedactIndices(para, redact_info)
-    # print(redact_indices)
-    return redact(para, redact_indices)
+
+    # creates a copy of para where each char is its own run
+    para = convertRuns(para, temp_doc)
+
+    redact(para, redact_indices, new_doc)
 
 
 def getRedactIndices(para, redact_info):
@@ -148,7 +153,7 @@ def getRedactIndices(para, redact_info):
         if char == " " or char == "\t" or char == "\n":
             curr_word = curr_word.strip(punctuation)
             if binary_search(redact_info, curr_word):
-                redact_indices.append((i - len(curr_word), i - 1))
+                redact_indices.append((i - len(curr_word), i))
             curr_word = ""
         else:
             curr_word += char
@@ -157,47 +162,101 @@ def getRedactIndices(para, redact_info):
     if curr_word:
         curr_word = curr_word.strip(punctuation)
         if binary_search(redact_info, curr_word):
-            redact_indices.append((i - len(curr_word) + 1, len(para.text) - 1))
+            redact_indices.append((i - len(curr_word) + 1, len(para.text)))
 
     return redact_indices
 
 
-def redact(para, redact_indices):
+def convertRuns(para, temp_doc):
+    """ Converts all text in a paragraph to individual runs for each character
+        so that we may uniformly redact instances of sensitive information."""
+
+    p = temp_doc.add_paragraph()
+
+    for run in para.runs:
+        for char in run.text:
+            r = p.add_run(char)
+            r.bold = run.bold
+            r.italic = run.italic
+            r.underline = run.underline
+            r.font.color.rgb = run.font.color.rgb
+            r.font.name = run.font.name
+            r.style.name = run.style.name
+            r.font.size = run.font.size
+
+    p.paragraph_format.alignment = para.paragraph_format.alignment
+    p.paragraph_format.first_line_indent = para.paragraph_format.first_line_indent
+    p.paragraph_format.keep_together = para.paragraph_format.keep_together
+    p.paragraph_format.keep_with_next = para.paragraph_format.keep_with_next
+    p.paragraph_format.left_indent = para.paragraph_format.left_indent
+    p.paragraph_format.line_spacing = para.paragraph_format.line_spacing
+    p.paragraph_format.line_spacing_rule = para.paragraph_format.line_spacing_rule
+    p.paragraph_format.page_break_before = para.paragraph_format.page_break_before
+    p.paragraph_format.right_indent = para.paragraph_format.right_indent
+    p.paragraph_format.space_after = para.paragraph_format.space_after
+    p.paragraph_format.widow_control = para.paragraph_format.widow_control
+    p.paragraph_format.space_before = para.paragraph_format.space_before
+
+    return p
+
+
+def redact(para, redact_indices, new_doc):
     """ This function modifies our paragraph object with new 'black runs'
         which are our redactions """
 
-    document = Document()
-    p = document.add_paragraph()
+    index_map = getIndexMap(para, redact_indices)
 
-    for redaction in redact_indices:
-        p.add_run()
-        document.paragraphs[0].runs[0].font.highlight_color = WD_COLOR_INDEX.BLACK
+    p = new_doc.add_paragraph()
 
-        start = redaction[0]
-        end = redaction[1]
-        print(para.text[start:end + 1])
+    for i in range(len(para.runs)):
+        if index_map[i] == 1:
+            run = para.runs[i]
+            r = p.add_run("X")
+            r.font.highlight_color = WD_COLOR_INDEX.BLACK
+            r.bold = run.bold
+            r.italic = run.italic
+            r.underline = run.underline
+            r.font.color.rgb = run.font.color.rgb
+            r.font.name = run.font.name
+            r.style.name = run.style.name
+            r.font.size = run.font.size
+        else:
+            run = para.runs[i]
+            r = p.add_run(run.text)
+            r.bold = run.bold
+            r.italic = run.italic
+            r.underline = run.underline
+            r.font.color.rgb = run.font.color.rgb
+            r.font.name = run.font.name
+            r.style.name = run.style.name
+            r.font.size = run.font.size
 
-    return "done"
+    p.paragraph_format.alignment = para.paragraph_format.alignment
+    p.paragraph_format.first_line_indent = para.paragraph_format.first_line_indent
+    p.paragraph_format.keep_together = para.paragraph_format.keep_together
+    p.paragraph_format.keep_with_next = para.paragraph_format.keep_with_next
+    p.paragraph_format.left_indent = para.paragraph_format.left_indent
+    p.paragraph_format.line_spacing = para.paragraph_format.line_spacing
+    p.paragraph_format.line_spacing_rule = para.paragraph_format.line_spacing_rule
+    p.paragraph_format.page_break_before = para.paragraph_format.page_break_before
+    p.paragraph_format.right_indent = para.paragraph_format.right_indent
+    p.paragraph_format.space_after = para.paragraph_format.space_after
+    p.paragraph_format.widow_control = para.paragraph_format.widow_control
+    p.paragraph_format.space_before = para.paragraph_format.space_before
 
-    # temp_para = para
 
-    # document = Document()
-    # p = document.add_paragraph()
 
-    # for i in range(len(redact_indices)):
-    #     start = redact_indices[i][0]
-    #     end = redact_indices[i][1]
-    #     my_str = " " * (end - start)
-    #     p.add_run(my_str)
-    #     document.paragraphs[0].runs[i].font.highlight_color = WD_COLOR_INDEX.BLACK
-    #     curr_run = document.paragraphs[0].runs[i]
-    #     para.text = para.text[:start]
-    #     print(para.text)
-    #     para.add_run(curr_run.text)
-    #     print(para.text)
-    #     para.text = para.text + temp_para.text[end + 2:]
-    #     print(para.text)
-    # return "done"
+def getIndexMap(para, redact_indices):
+    index_map = {}
+
+    for i in range(len(para.text)):
+        index_map[i] = 0
+
+    for entry in redact_indices:
+        for i in range(entry[0], entry[1]):
+            index_map[i] = 1
+
+    return index_map
 
 
 def main():
