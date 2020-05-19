@@ -11,4 +11,5 @@ Not implemented yet:
 Current Bugs:
 - document style hierarchy not completely retained
 - bulleted/numbered lists (paragraph styles)
+- middle initial(s) are not redacted (may actually cause a separate bug)
 - ~~off-by-one issue on some redactions~~
