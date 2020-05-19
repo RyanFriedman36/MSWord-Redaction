@@ -9,5 +9,6 @@ Not implemented yet:
 - support for images
 
 Current Bugs:
+- document style hierarchy not completely retained
 - bulleted/numbered lists (paragraph styles)
 - ~~off-by-one issue on some redactions~~
