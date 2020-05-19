@@ -10,4 +10,4 @@ Not implemented yet:
 
 Current Bugs:
 - bulleted/numbered lists (paragraph styles)
-- ~~off-by-one issue on some redactions
+- ~~off-by-one issue on some redactions~~
