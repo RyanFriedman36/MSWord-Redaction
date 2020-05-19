@@ -120,10 +120,15 @@ def processFiles(file_path_1, file_path_2):
     doc = Document(file_path_1)
 
     new_doc = Document()
+
+    new_doc.settings.odd_and_even_pages_header_footer = doc.settings.odd_and_even_pages_header_footer
+
     temp_doc = Document()
 
     for i in range(len(doc.paragraphs)):
         processPara(doc.paragraphs[i], redact_info, new_doc, temp_doc)
+
+    # for i in range(len(doc))
 
     new_doc.save(getDirFromFile(file_path_1) + "redacted version.docx")
 
@@ -143,7 +148,7 @@ def processPara(para, redact_info, new_doc, temp_doc):
 
 def getRedactIndices(para, redact_info):
     """ Returns a list containing tuples that represent the indices that any
-        instance of redact_info span in para """
+        instance of redact_info spans in para """
 
     redact_indices = []
 
@@ -151,10 +156,25 @@ def getRedactIndices(para, redact_info):
     for i in range(len(para.text)):
         char = para.text[i]
         if char == " " or char == "\t" or char == "\n":
+
+            if len(curr_word) >= 2:
+                if curr_word[-2:] == "'s":
+                    curr_word = char[:-2]
+
+            prev_word = curr_word
             curr_word = curr_word.strip(punctuation)
             if binary_search(redact_info, curr_word):
-                redact_indices.append((i - len(curr_word), i))
+
+                if curr_word != prev_word:
+                    redact_indices.append((i - 1 - len(curr_word), i - 1))
+                    print("|" + para.text[i - len(curr_word) - 1:i - 1] + "|")
+
+                else:
+                    redact_indices.append((i - len(curr_word), i))
+                    print("|" + para.text[i - len(curr_word):i] + "|")
+
             curr_word = ""
+
         else:
             curr_word += char
 
@@ -162,6 +182,7 @@ def getRedactIndices(para, redact_info):
     if curr_word:
         curr_word = curr_word.strip(punctuation)
         if binary_search(redact_info, curr_word):
+            print("|" + para.text[i - len(curr_word):i] + "|")
             redact_indices.append((i - len(curr_word) + 1, len(para.text)))
 
     return redact_indices
@@ -183,6 +204,8 @@ def convertRuns(para, temp_doc):
             r.font.name = run.font.name
             r.style.name = run.style.name
             r.font.size = run.font.size
+            r.font.subscript = run.font.subscript
+            r.font.superscript = run.font.superscript
 
     p.paragraph_format.alignment = para.paragraph_format.alignment
     p.paragraph_format.first_line_indent = para.paragraph_format.first_line_indent
@@ -196,6 +219,7 @@ def convertRuns(para, temp_doc):
     p.paragraph_format.space_after = para.paragraph_format.space_after
     p.paragraph_format.widow_control = para.paragraph_format.widow_control
     p.paragraph_format.space_before = para.paragraph_format.space_before
+    p.style = para.style
 
     return p
 
@@ -220,6 +244,8 @@ def redact(para, redact_indices, new_doc):
             r.font.name = run.font.name
             r.style.name = run.style.name
             r.font.size = run.font.size
+            r.font.subscript = run.font.subscript
+            r.font.superscript = run.font.superscript
         else:
             run = para.runs[i]
             r = p.add_run(run.text)
@@ -230,6 +256,8 @@ def redact(para, redact_indices, new_doc):
             r.font.name = run.font.name
             r.style.name = run.style.name
             r.font.size = run.font.size
+            r.font.subscript = run.font.subscript
+            r.font.superscript = run.font.superscript
 
     p.paragraph_format.alignment = para.paragraph_format.alignment
     p.paragraph_format.first_line_indent = para.paragraph_format.first_line_indent
@@ -243,10 +271,14 @@ def redact(para, redact_indices, new_doc):
     p.paragraph_format.space_after = para.paragraph_format.space_after
     p.paragraph_format.widow_control = para.paragraph_format.widow_control
     p.paragraph_format.space_before = para.paragraph_format.space_before
-
+    p.style = para.style
 
 
 def getIndexMap(para, redact_indices):
+    """ creates a hash table that allows us to check in expected constant time
+        whether a given character should be redacted or not
+        (linear time to build) """
+
     index_map = {}
 
     for i in range(len(para.text)):
@@ -270,20 +302,6 @@ def main():
     processFiles(file_path_1, file_path_2)
 
 
-
-    # TESTING:
-
-    # my_doc = Document()
-    # for i in range(10):
-    #     my_doc.add_paragraph(str(i))
-
-
-    # my_doc.paragraphs[1] = my_doc.paragraphs[1].add_run("adhfalsdfj").bold = True
-    # my_doc.paragraphs[1].runs[-1].font.highlight_color = WD_COLOR_INDEX.BLACK
-    # my_doc.paragraphs[1].runs[-1].bold = False
-
-    # for para in my_doc.paragraphs:
-    #     print(para.text)
 
     # target_dir = getDirFromFile(requestFile())
     # os.remove(target_dir + "output_test.docx")
