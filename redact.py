@@ -17,6 +17,7 @@ Description: This program will allow a user to supply a Microsoft Word
 from docx import Document
 from docx.enum.text import WD_COLOR_INDEX
 import tkinter as tk
+from tkinter import *
 from tkinter import filedialog
 from string import punctuation
 
@@ -44,27 +45,12 @@ def popupmsg(msg):
         may click 'okay' to close the window. """
 
     popup = tk.Tk()
-    popup.wm_title("Auto-Redact")
+    popup.wm_title("Auto-Redaction App")
     label = tk.Label(popup, text=msg, font=("Helvetica", 10))
     label.pack(side="top", fill="x", pady=10)
     B1 = tk.Button(popup, text="Okay", command=popup.destroy)
     B1.pack()
     popup.mainloop()
-
-
-def requestFile():
-    """ This function opens a file selection window using tkinter and
-    returns the file path """
-
-    root = tk.Tk()
-    root.withdraw()
-
-    file_path = filedialog.askopenfilename()
-
-    if not file_path:
-        exit(1)
-
-    return file_path
 
 
 def getDirFromFile(file_path):
@@ -84,7 +70,7 @@ def getDirFromFile(file_path):
 
 
 def processInfoFile(info_path):
-    """ Opens the file and cleans/processes information to be redacted
+    """ Opens the file and cleans/processes the information to be redacted
         into the proper state """
 
     redact_file = open(info_path, "r")
@@ -107,10 +93,13 @@ def processInfoFile(info_path):
     return redact_info
 
 
-def processFiles(file_path_1, file_path_2):
+def processFiles():
     """ file_path_1 is our Word document and file_path_2 is any text file
         with proper nouns listed on separate lines. This is where we create
         our redacted Word File """
+
+    file_path_1 = word_file
+    file_path_2 = txt_file
 
     redact_info = processInfoFile(file_path_2)
 
@@ -125,13 +114,12 @@ def processFiles(file_path_1, file_path_2):
     for i in range(len(doc.paragraphs)):
         processPara(doc.paragraphs[i], redact_info, new_doc, temp_doc)
 
-    # for i in range(len(doc))
-
     new_doc.save(getDirFromFile(file_path_1) + "redacted version.docx")
+    popupmsg("Your redacted file has been created in the following directory: " + getDirFromFile(file_path_1))
 
 
 def processPara(para, redact_info, new_doc, temp_doc):
-    """ Gets indices for words that are to be redacts them then returns a
+    """ Gets indices for words that are to be redacts them then creates a
         a paragraph with those words redacted  """
 
     # gets indices within para.text of sensitive info
@@ -285,18 +273,87 @@ def getIndexMap(para, redact_indices):
     return index_map
 
 
+def requestFile(file_type):
+    """ This function opens a file selection window using tkinter and
+    returns the file path """
+    global word_file
+    global txt_file
+
+    root = Tk()
+    root.withdraw()
+
+    file_path = filedialog.askopenfilename()
+
+    if not file_path:
+        exit(1)
+
+    if file_type == "docx":
+        if file_path[-4:] != "docx":
+            popupmsg("The file you selected was not a .docx file")
+
+        else:
+            word_file = file_path
+
+    elif file_type == "txt":
+        if file_path[-3:] != "txt":
+            popupmsg("The file you selected was not a .txt file")
+        else:
+            txt_file = file_path
+
+
+def request_docx():
+    requestFile("docx")
+
+
+def request_txt():
+    requestFile("txt")
+
+
+def on_closing():
+    exit(-1)
+
+
+def GUI():
+
+    master = tk.Tk()
+    master.wm_title("Auto-redaction App")
+    master.minsize(300, 200)
+    master.geometry("300x200")
+
+    global word_file
+    word_file = ""
+    b1 = Button(master,
+                text="Click to add Word file",
+                command=request_docx,
+                height=0,
+                width=0)
+    b1.place(relx=0.5, rely=0.2, anchor=CENTER)
+
+    global txt_file
+    txt_file = ""
+    b2 = Button(master,
+                text="Click to add text file",
+                command=request_txt,
+                height=0,
+                width=0)
+
+    b2.place(relx=0.5, rely=0.5, anchor=CENTER)
+
+    b3 = Button(master,
+                text="Process",
+                command=processFiles,
+                height=0,
+                width=0)
+
+    b3.place(relx=0.5, rely=0.8, anchor=CENTER)
+
+    master.protocol("WM_DELETE_WINDOW", on_closing)
+    master.mainloop()
+
+
 def main():
 
-
-    popupmsg("Please select the Word document that you would like to redact from.")
-
-    file_path_1 = requestFile()
-
-    file_path_2 = requestFile()
-
-    processFiles(file_path_1, file_path_2)
-
-    popupmsg("The redacted version of your file has been created.")
+    GUI()
 
 
 if __name__ == "__main__":
