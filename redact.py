@@ -19,9 +19,6 @@ from docx.enum.text import WD_COLOR_INDEX
 import tkinter as tk
 from tkinter import filedialog
 from string import punctuation
-import os
-from os import remove
-import copy
 
 
 def binary_search(source, target):
@@ -167,11 +164,9 @@ def getRedactIndices(para, redact_info):
 
                 if curr_word != prev_word:
                     redact_indices.append((i - 1 - len(curr_word), i - 1))
-                    print("|" + para.text[i - len(curr_word) - 1:i - 1] + "|")
 
                 else:
                     redact_indices.append((i - len(curr_word), i))
-                    print("|" + para.text[i - len(curr_word):i] + "|")
 
             curr_word = ""
 
@@ -182,7 +177,6 @@ def getRedactIndices(para, redact_info):
     if curr_word:
         curr_word = curr_word.strip(punctuation)
         if binary_search(redact_info, curr_word):
-            print("|" + para.text[i - len(curr_word):i] + "|")
             redact_indices.append((i - len(curr_word) + 1, len(para.text)))
 
     return redact_indices
@@ -294,30 +288,15 @@ def getIndexMap(para, redact_indices):
 def main():
 
 
-    # popupmsg("Please select the Word document that you would like to redact from.")
+    popupmsg("Please select the Word document that you would like to redact from.")
+
     file_path_1 = requestFile()
 
     file_path_2 = requestFile()
 
     processFiles(file_path_1, file_path_2)
 
-
-
-    # target_dir = getDirFromFile(requestFile())
-    # os.remove(target_dir + "output_test.docx")
-
-    # my_doc.save(target_dir + "output_test.docx")
-
-
-
-
-    # popupmsg("The redacted version of your file has been created.")
-
-    # display directory?
-
-    # ask if they would like to open it in word
-
-    # ask if they would like you to port to a pdf?
+    popupmsg("The redacted version of your file has been created.")
 
 
 if __name__ == "__main__":
