@@ -8,7 +8,7 @@ Project: Automatic legal-document redactionn desktop application
 Author: Ryan Friedman
 
 Description: This program will allow a user to supply a Microsoft Word
-             Document and a list of proper nouns that need to be redacted.
+             Document and a list of strings that need to be redacted.
              It will create a new Word Document with any version of the proper
              nouns replaced with a black highlight. We create a new document to
              ensure fresh metadata.
@@ -97,6 +97,11 @@ def processFiles():
     """ file_path_1 is our Word document and file_path_2 is any text file
         with proper nouns listed on separate lines. This is where we create
         our redacted Word File """
+
+    # if word_file != "" and txt_file != "":
+    #     popupmsg("You're file is being processed. You will receive another pop-up message when it is complete.")
+    # else:
+    #     exit(-1)
 
     file_path_1 = word_file
     file_path_2 = txt_file
@@ -275,7 +280,8 @@ def getIndexMap(para, redact_indices):
 
 def requestFile(file_type):
     """ This function opens a file selection window using tkinter and
-    returns the file path """
+    assings the file path to the proper global variable """
+
     global word_file
     global txt_file
 
@@ -302,26 +308,34 @@ def requestFile(file_type):
 
 
 def request_docx():
+    """ call to request file specifically for docx files"""
     requestFile("docx")
 
 
 def request_txt():
+    """ call to request file specifically for txt files"""
     requestFile("txt")
 
 
 def on_closing():
+    """ error code exit for closing the GUI"""
+
     exit(-1)
 
 
 def GUI():
+    """ Creates the GUI for this application. """
+
+    global word_file
+    global txt_file
+    word_file = ""
+    txt_file = ""
 
     master = tk.Tk()
     master.wm_title("Auto-redaction App")
     master.minsize(300, 200)
     master.geometry("300x200")
 
-    global word_file
-    word_file = ""
     b1 = Button(master,
                 text="Click to add Word file",
                 command=request_docx,
@@ -329,8 +343,6 @@ def GUI():
                 width=0)
     b1.place(relx=0.5, rely=0.2, anchor=CENTER)
 
-    global txt_file
-    txt_file = ""
     b2 = Button(master,
                 text="Click to add text file",
                 command=request_txt,
