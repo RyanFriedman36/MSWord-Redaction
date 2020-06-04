@@ -1,6 +1,6 @@
 # docx-Redaction
 
-A desktop application written in python for the purpose of redacting sensitive information from a Microsoft Word document. The UI will prompt you to select a docx file and a .txt file. The .txt file should be simply a comm-separated list of full names of any sensitive proper nouns (do not include middle initials).
+A desktop application written in python for the purpose of redacting sensitive information from a Microsoft Word document. The UI will prompt you to select a docx file and a .txt file. The .txt file should be simply a comma-separated list of full names of any sensitive proper nouns (do not include middle initials).
 
 This program will create a new docx file so that there is no metadata that indicates what data was redacted. This is not an executable, the necessary python libraries must be installed on the local machine to run. 
 
