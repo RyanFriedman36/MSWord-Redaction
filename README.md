@@ -18,3 +18,6 @@ Not implemented yet:
 Current Bugs:
 - document style hierarchy not completely retained
 - ~~off-by-one issue on some redactions~~
+
+
+![record screen](https://github.com/RyanFriedman36/docx-redaction/blob/master/redaction%20ex.png)
