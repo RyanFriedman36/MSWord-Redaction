@@ -4,9 +4,9 @@ A desktop application written in python for the purpose of redacting sensitive i
 
 This program will create a new docx file so that there is no metadata that indicates what data was redacted. This is not an executable, the necessary python libraries must be installed on the local machine to run. 
 
-Inspiration:
+# Inspiration:
 
-My mother works as a hearing officer and she has now been tasked with redacting all of the sensitive information from her decisions before she can publish them. In honor of Mother's day I decided to write her a program that could that for her!
+My mother works as a hearing officer and she was recently been tasked with redacting all of the sensitive information from her decisions before she can publish them. In honor of Mother's day I decided to write her a program that could that for her safely!
 
 
 Not implemented yet:
