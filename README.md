@@ -6,7 +6,7 @@ This program will create a new docx file so that there is no metadata that indic
 
 # Inspiration:
 
-My mother works as a hearing officer and she was recently been tasked with redacting all of the sensitive information from her decisions before she can publish them. In honor of Mother's day I decided to write her a program that could that for her safely!
+My mother works as a hearing officer and she was recently tasked with redacting all of the sensitive information from her decisions before she can publish them. In honor of Mother's day I decided to write her a program that could that for her safely!
 
 
 Not implemented yet:
